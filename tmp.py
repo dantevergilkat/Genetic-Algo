@@ -19,12 +19,19 @@ def bin_dec_to_gray(n): # chuyen thap phan, nhi phan sang gray code
  
     # bin(n) returns n's binary representation with a '0b' prefixed
     # the slice operation is to remove the prefix
-    return bin(n)[2:]
+    gray = bin(n)[2:]
+    gray = [int(char) for char in gray]
+    gray = np.asarray(gray)
+    return gray
 
 def gray2bin(bits):
-	b = [bits[0]]
-	for nextb in bits[1:]: b.append(b[-1] ^ nextb)
-	return b
+    b = [bits[0]]
+    for nextb in bits[1:]: 
+        b.append(b[-1] ^ nextb)
+        #b.append(b[-1] ^ nextb)
+
+    b = np.asarray(b)
+    return b
 
 for i in range(10):
     gray = bin_dec_to_gray(i)
@@ -32,5 +39,11 @@ for i in range(10):
     print('Gray code: ', bin_dec_to_gray(bin_num))'''
     #gray = list(gray)
     #print(list(gray))
-    gray = [int(char) for char in gray]
     print('Gray code: ', gray, ", Dec code: ", gray2bin(gray))
+
+a = np.array([1,0,1,0])
+b = np.array([0,0,0,1])
+b = np.insert(b, 0, random.randint(0,1))
+print(b)
+s = np.sum(np.abs(a-b))
+print(s)
