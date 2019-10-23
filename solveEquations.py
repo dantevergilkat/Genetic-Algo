@@ -63,7 +63,10 @@ class Genetic:
 
     def initPopulation(self):
         for i in range(len(self.n)):
-            x = random.randint(self.min_x_val, self.max_x_val)
+            #x = random.randint(self.min_x_val, self.max_x_val)
+            x = random.uniform(self.min_x_val, self.max_x_val)
+            # Convert to IEEE 754
+            
             gray = bin_dec_to_gray(x)
             #gray = str(random.randint(0,1)) + gray # them bit sign
             gray = np.insert(gray, 0, random.randint(0,1)) # prepend sign value 0: am, 1: duong
