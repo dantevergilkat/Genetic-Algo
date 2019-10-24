@@ -113,3 +113,12 @@ def int_to_bytes(n, length):  # Helper function
 res = bin_to_float(iee)
 print(res)
 print(type(res))
+
+arr = np.array([1,2,3,4])
+print(len(arr))
+s = ''
+for i in range(4):
+    s += str(arr[i])
+
+print(type(s))
+print(int(7.4))
