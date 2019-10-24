@@ -45,6 +45,7 @@ class Equation:
         #print('float_x type: ', type(float_x))
         l_side = self.fObjective(float_x) # ve trai
         r_side = 0 # ve phai
+        print('l_side: ', l_side)
         l_side = binary(l_side) # gray code: numpy array
         r_side = binary(r_side) # gray code: numpy array
 
@@ -55,7 +56,7 @@ class Equation:
 
 
 class Genetic:
-    def __init__(self, n, cr, mr, lower=0, upper=30, length=32):
+    def __init__(self, n, cr, mr, lower=0, upper=30, length=32, eliteProp=0.2):
         self.n = n # so luong chromosome trong population
         self.crossover_rate = cr
         self.mutation_rate = mr
@@ -63,6 +64,7 @@ class Genetic:
         self.min_x_val = lower # gia tri nho nhat khi random gia tri ban dau cho x
         self.max_x_val = upper # gia tri lon nhat khi random gia tri ban dau cho x
         self.defaultLen = length # the length of a chromosome, 32 bit lenght IEEE 754
+        self.elite = int(eliteProp*self.n)
 
     def initPopulation(self):
         for i in range(self.n):
@@ -88,21 +90,22 @@ class Genetic:
         
         '''for i in range(0, eliteSize): 
             selectionResults.append(popRanked[i][0])'''  # popRanked is an list, each element has 2 part: "Index" and "Fitness"
-        r = []
         for i in range(0, len(popRanked)): # why minus here?
             pick = 100*random.random() # a random number between 0 and 1
             for i in range(0, len(popRanked)): # len() of a dataframe is the number of rows # ?? Why i not j # There may be a pick again
                 if pick <= df.iat[i,3]: # df.iat[a,b] get a value at row i and column 3 (cum_perc column), then compare it with a random number
                     # !! cum_perc is high (fitNess is low) => The element of popRanked has higher change to be chosen !!
                     selectionResults.append(popRanked[i][0]) # add chosen route index
-                    r.append(pick)
                     break # in each first loop, only choose 1 result; why need to do this?
-        return selectionResults,r # save list of indices of a bit string
+        return selectionResults # save list of indices of a bit string
 
-    def selectParents(self, selectionResults, r): # !!PROBS: maybe no parents
+    def selectParents(self, selectionResults, eliteSize): # !!PROBS: maybe no parents
         parents = []
+        '''for i in range(eliteSize):
+            parents.append((i, self.population[selectionResults[i]]))'''
         for i in range(0, len(selectionResults)):
-            if  r[i] < self.crossover_rate:
+            pick = random.random()
+            if  pick < self.crossover_rate:
                 parents.append((i, self.population[selectionResults[i]])) # luu index va gene
 
         return parents
@@ -111,7 +114,8 @@ class Genetic:
         C = []
         l = len(parents)
         for i in range(0, l):
-            pick = random.randint(1, self.defaultLen-1)
+            #pick = random.randint(1, self.defaultLen-1)
+            pick = random.randint(2,10)
             C.append(pick)
 
         for i in range(0, l):
@@ -126,7 +130,9 @@ class Genetic:
         total_gen = self.defaultLen * self.n
         nMutations = int(self.mutation_rate * total_gen)
         for i in range(nMutations):
-            pick = random.randint(0, total_gen - 1)
+            pick = 20 
+            while pick%self.defaultLen > 10:
+                pick = random.randint(0, total_gen - 1)
             '''rand_val = random.uniform(self.min_x_val, self.max_x_val)
             bin_rand_val = binary(rand_val)'''
             gene = int(pick/self.defaultLen)
@@ -144,8 +150,8 @@ class Genetic:
         equ = Equation(a, b, c)
         for i in range(n_generation):
             rankedVals = self.rankVals(equ)
-            selectionResults, r = self.selection(rankedVals)
-            parents = self.selectParents(selectionResults, r)
+            selectionResults= self.selection(rankedVals)
+            parents = self.selectParents(selectionResults, self.elite)
             self.crossover(parents)
             self.mutation()
 
@@ -159,7 +165,7 @@ b = float(input("Nhap b: "))
 c = float(input("Nhap c: "))
 
 equ = Equation(a, b, c)
-gene = Genetic(n=100, cr=0.3, mr=0.1, lower=-5, upper=5, length=32)
+gene = Genetic(n=100, cr=0.3, mr=0.1, lower=-5, upper=100, length=32, eliteProp=0.2)
 best_val = gene.geneticAlgo(a, b, c)
 print(best_val)
 print(type(best_val))
