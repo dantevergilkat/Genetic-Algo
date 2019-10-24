@@ -8,7 +8,7 @@ from codecs import decode
 
 def binary(num): # Convert float to binary (IEEE 754) 
     s = ''.join(bin(c).replace('0b', '').rjust(8, '0') for c in struct.pack('!f', num))
-    return np.asarray(list(s))
+    return np.asarray(list(s), dtype=int)
 
 def bin_to_float(b): # b is string type
     """ Convert binary string to a float. """
@@ -41,18 +41,21 @@ class Equation:
             l = len(x)
             for i in range(l):
                 str_x += str(x[i])
+        print(str_x)
         float_x = bin_to_float(str_x)
         #print('float_x type: ', type(float_x))
         l_side = self.fObjective(float_x) # ve trai
         r_side = 0 # ve phai
         print('l_side: ', l_side)
-        l_side = binary(l_side) # gray code: numpy array
+        print('float_x: ', float_x)
+        '''l_side = binary(l_side) # gray code: numpy array
         r_side = binary(r_side) # gray code: numpy array
 
         # Hamming distance
-        dist = np.sum(np.abs(a-b))
+        dist = np.sum(np.abs(l_side-r_side))
 
-        return 1/(1 + dist)
+        return 1/(1 + dist)'''
+        return 1/(1 + abs(l_side - r_side))
 
 
 class Genetic:
@@ -88,9 +91,9 @@ class Genetic:
         df['cum_sum'] = df.Fitness.cumsum() # cumulative sum
         df['cum_perc'] = 100*df.cum_sum/df.Fitness.sum() # roulette wheel, proportion of cumulative sum |?? need to change ??|
         
-        '''for i in range(0, eliteSize): 
-            selectionResults.append(popRanked[i][0])'''  # popRanked is an list, each element has 2 part: "Index" and "Fitness"
-        for i in range(0, len(popRanked)): # why minus here?
+        for i in range(0, eliteSize): 
+            selectionResults.append(popRanked[i][0])  # popRanked is an list, each element has 2 part: "Index" and "Fitness"
+        for i in range(0, len(popRanked) - eliteSize): # why minus here?
             pick = 100*random.random() # a random number between 0 and 1
             for i in range(0, len(popRanked)): # len() of a dataframe is the number of rows # ?? Why i not j # There may be a pick again
                 if pick <= df.iat[i,3]: # df.iat[a,b] get a value at row i and column 3 (cum_perc column), then compare it with a random number
@@ -115,7 +118,7 @@ class Genetic:
         l = len(parents)
         for i in range(0, l):
             #pick = random.randint(1, self.defaultLen-1)
-            pick = random.randint(2,10)
+            pick = random.randint(9, self.defaultLen - 1) # !! Just crossover in mantissa part !!
             C.append(pick)
 
         for i in range(0, l):
@@ -130,8 +133,8 @@ class Genetic:
         total_gen = self.defaultLen * self.n
         nMutations = int(self.mutation_rate * total_gen)
         for i in range(nMutations):
-            pick = 20 
-            while pick%self.defaultLen > 10:
+            pick = None 
+            while pick == None or pick%self.defaultLen < 9: # !! Just mutation in mantissa part !! 
                 pick = random.randint(0, total_gen - 1)
             '''rand_val = random.uniform(self.min_x_val, self.max_x_val)
             bin_rand_val = binary(rand_val)'''
@@ -149,8 +152,9 @@ class Genetic:
         self.initPopulation()
         equ = Equation(a, b, c)
         for i in range(n_generation):
+            print('[+] Iteration: ', i)
             rankedVals = self.rankVals(equ)
-            selectionResults= self.selection(rankedVals)
+            selectionResults= self.selection(rankedVals, self.elite)
             parents = self.selectParents(selectionResults, self.elite)
             self.crossover(parents)
             self.mutation()
